@@ -1,0 +1,38 @@
+services:
+  glance:
+    container_name: glance
+    image: glanceapp/glance
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config:ro
+      - ./config/glance.yml:/app/glance.yml:ro
+    env_file:
+      - ./.env
+    expose:
+      - 8080
+    networks:
+      - traefik_proxy
+      - internal_net
+    labels:
+      #- traefik.http.services.anotherservice.loadbalander.server.port=1234
+      - traefik.enable=true
+      - traefik.http.routers.glance.rule=Host(`glance.example.com`)
+      - traefik.http.routers.glance.entrypoints=websecure
+      - traefik.http.routers.glance.tls=true
+      - traefik.http.routers.glance.middlewares=authelia@docker
+  api:
+    hostname: glance-api
+    image: app
+    restart: unless-stopped
+    networks:
+      - internal_net
+    build:
+      context: ./custom-api
+      dockerfile: Dockerfile
+    expose:
+      - 3000
+networks:
+  traefik_proxy:
+    external: true
+  internal_net:
+    driver: bridge
