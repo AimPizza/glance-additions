@@ -1,167 +1,27 @@
-pages:
-  - name: Home
-    # Optionally, if you only have a single page you can hide the desktop navigation for a cleaner look
-    # hide-desktop-navigation: true
-    columns:
-      - size: small
-        widgets:
-          - type: calendar
-            first-day-of-week: monday
-          - type: custom-api
-            title: Epic Games
-            cache: 6h
-            url: https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en&country=US&allowCountries=DE
-            template: |
-              <div>
-                {{ if eq .Response.StatusCode 200 }}
-                  <ul class="horizontal-cards-2 list list-gap-10">
-                    {{ range .JSON.Array "data.Catalog.searchStore.elements" }}
-                      {{ $price := .String "price.totalPrice.discountPrice" }}
-                      {{ $hasPromo := gt (len (.Array "promotions.promotionalOffers")) 0 }}
-                      {{ if and $hasPromo (eq $price "0") }}
-                        {{ $gamePage := .String "productSlug" }}
-                        {{ if gt (len (.Array "offerMappings")) 0 }}
-                          {{ $gamePage = .String "offerMappings.0.pageSlug" }}
-                        {{end }}
-                        <a href="https://store.epicgames.com/en-US/p/{{ $gamePage }}" target="_blank" class="card color-primary-if-not-visited">
-                          {{ $title := .String "title" }}
-                          {{ range .Array "keyImages" }}
-                            {{ if eq (.String "type") "OfferImageWide" }}
-                              <img src="{{ .String "url" }}" alt="{{ $title }}" style="width: 100%; max-width: 300px; height: 150px; object-fit: cover; border-radius: var(--border-radius);">
-                            {{ end }}
-                          {{ end }}
-                          <div class="card-content">
-                            <span class="size-base" >{{ $title }}</span><br>
-                            <span class="size-h5 color-subdue">
-                              {{ if $hasPromo }}
-                                {{ $promotions := .Array "promotions.promotionalOffers" }}
-                                {{ if gt (len $promotions) 0 }}
-                                  {{ $firstPromo := index $promotions 0 }}
-                                  {{ $offers := $firstPromo.Array "promotionalOffers" }}
-                                  {{ if gt (len $offers) 0 }}
-                                    {{ $firstOffer := index $offers 0 }}
-                                    Free until {{ slice ($firstOffer.String "endDate") 0 10 }}
-                                  {{ else }}
-                                    Free this week!
-                                  {{ end }}
-                                {{ else }}
-                                  Free this week!
-                                {{ end }}
-                              {{ end }}
-                            </span>
-                          </div>
-                        </a>
-                      {{ end }}
-                    {{ end }}
-                  </ul>
-                {{ else }}
-                  <p class="color-negative">Error fetching Epic Games data.</p>
-                  <pre>{{ .JSON.String }}</pre>
-                {{ end }}
-              </div>
+- type: custom-api
+  title: Mensa - Heute
+  cache: 1h
+  url: "http://glance-api:3000/mensa/${MENSA_ID}"
+  allow-insecure: true
+  template: |
+    <ul class="list list-gap-8 collapsible-container" data-collapse-after="5">
+    {{ range .JSON.Array "" }}
+      <li class="card p-6">
+        <p class="size-h4 color-highlight block text-truncate">{{ .String "name" }}</p>
+        <p class="size-small color-muted">{{ .String "category" }}</p>
 
-      - size: full
-        widgets:
+        <ul class="list-horizontal-text mt-4">
+          <li><strong>Studierende:</strong> {{ .String "prices.students" }} €</li>
+        </ul>
 
-          - type: group
-            widgets:
-              - type: custom-api
-                title: Mensa - Heute
-                cache: 1h
-                url: "http://glance-api:3000/mensa/${MENSA_ID}"
-                allow-insecure: true
-                template: |
-                  <ul class="list list-gap-8 collapsible-container" data-collapse-after="5">
-                  {{ range .JSON.Array "" }}
-                    <li class="card p-6">
-                      <p class="size-h4 color-highlight block text-truncate">{{ .String "name" }}</p>
-                      <p class="size-small color-muted">{{ .String "category" }}</p>
-
-                      <ul class="list-horizontal-text mt-4">
-                        <li><strong>Studierende:</strong> {{ .String "prices.students" }} €</li>
-                        <li><strong>Mitarbeitende:</strong> {{ .String "prices.employees" }} €</li>
-                        <li><strong>Andere:</strong> {{ .String "prices.others" }} €</li>
-                      </ul>
-
-                      <div class="mt-4">
-                        <p class="size-small color-muted">Allergene / Hinweise:</p>
-                        <div class="flow-inline mt-2">
-                          {{ range .Array "notes" }}
-                            <span class="tag">{{ .String "." }}</span>
-                          {{ end }}
-                        </div>
-                      </div>
-                    </li>
-                  {{ end }}
-                  </ul>
-              - type: custom-api
-                title: Campus-Dual Reminders
-                cache: 3h
-                url: https://selfservice.campus-dual.de/dash/getreminders?user=${CAMPUS_USER}&hash=${CAMPUS_PW_HASH}
-                allow-insecure: true
-                template: |
-                      <ul class="list list-gap-10 collapsible-container" data-collapse-after="5">
-                      {{ range .JSON.Array "LATEST" }}
-                        <li>
-                          <p class="size-h4 color-highlight block text-truncate">{{ .String "AWOBJECT" }}</p>
-                          <ul class="list-horizontal-text">
-                            <li>{{ .String "GRADESYMBOL"}}</li>
-                            <li class="color-positive">{{ .String "AWSTATUS" }} </li>
-                          </ul>
-                        </li>
-                      {{ end }}
-                      </ul>
-
-      - size: small
-        widgets:
-          - type: weather
-            location: Leipzig, Germany
-            units: metric # alternatively "imperial"
-            hour-format: 24h
-            # Optionally hide the location from being displayed in the widget
-            # hide-location: true
-
-          - type: to-do
-
-          - type: releases
-            cache: 1d
-            # Without authentication the Github API allows for up to 60 requests per hour. You can create a
-            # read-only token from your Github account settings and use it here to increase the limit.
-            # token: ...
-            repositories:
-              - dohsimpson/TaskTrove
-              - glanceapp/glance
-
-          - type: custom-api
-            title: Last.fm
-            cache: 60s
-            url: http://ws.audioscrobbler.com/2.0/
-            parameters:
-              method: user.getRecentTracks
-              user: ${LASTFM_USERNAME}
-              api_key: ${LASTFM_API_KEY}
-              format: json
-              limit: 10
-            template: |
-              <ul class="list list-gap-10 collapsible-container" data-collapse-after="5">
-                {{ if eq .Response.StatusCode 200 }}
-                  {{ range .JSON.Array "recenttracks.track" }}
-                    <li class="flex items-center gap-10">
-                      <img src={{ .String "image.2.#text" }} style="border-radius: 5px; min-width: 5rem; max-width: 5rem;" class="card">
-                      <div class="flex-1">
-                        <p class="color-positive size-h5">{{ .String "name" }}</p>
-                        <p class="size-h5">{{ .String "artist.#text" }}</p>
-                        <p class="size-h6">
-                          {{ if .String "@attr.nowplaying" }}
-                            <span class="color-positive">Now playing</span>
-                          {{ else }}
-                            <span class="color-subdue" {{ .String "date.#text" | parseRelativeTime "02 Jan 2006, 15:04" }}></span>
-                          {{ end }}
-                        </p>
-                      </div>
-                    </li>
-                  {{ end }}
-                {{ else}}
-                  <p class="color-negative">Error fetching Last.fm</p>
-                {{ end }}
-              </ul>
+        <div class="mt-4">
+          <p class="size-small color-muted">Allergene / Hinweise:</p>
+          <div class="flow-inline mt-2">
+            {{ range .Array "notes" }}
+              <span class="tag">{{ .String "." }}</span>
+            {{ end }}
+          </div>
+        </div>
+      </li>
+    {{ end }}
+    </ul>
