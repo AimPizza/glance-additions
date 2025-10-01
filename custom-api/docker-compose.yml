@@ -4,14 +4,5 @@ services:
     container_name: mensa-glance-api
     hostname: glance-api
     restart: unless-stopped
-    networks:
-      - internal_net
-    expose:
-      - 3000
     ports:
       - "3000:3000"
-networks:
-  traefik_proxy:
-    external: true
-  internal_net:
-    driver: bridge
