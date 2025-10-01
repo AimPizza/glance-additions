@@ -1,0 +1,27 @@
+- type: custom-api
+  title: Mensa - Heute
+  cache: 1h
+  url: "http://glance-api:3000/mensa/${MENSA_ID}"
+  allow-insecure: true
+  template: |
+    <ul class="list list-gap-8 collapsible-container" data-collapse-after="5">
+    {{ range .JSON.Array "" }}
+      <li class="card p-6">
+        <p class="size-h4 color-highlight block text-truncate">{{ .String "name" }}</p>
+        <p class="size-small color-muted">{{ .String "category" }}</p>
+
+        <ul class="list-horizontal-text mt-4">
+          <li><strong>Studierende:</strong> {{ .String "prices.students" }} €</li>
+        </ul>
+
+        <div class="mt-4">
+          <p class="size-small color-muted">Allergene / Hinweise:</p>
+          <div class="flow-inline mt-2">
+            {{ range .Array "notes" }}
+              <span class="tag">{{ .String "." }}</span>
+            {{ end }}
+          </div>
+        </div>
+      </li>
+    {{ end }}
+    </ul>
