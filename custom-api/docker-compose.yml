@@ -1,6 +1,6 @@
 services:
   mensa-glance-api:
-    image: ghcr.io/AimPizza/my-glance-config:latest
+    image: ghcr.io/AimPizza/glance-additions:latest
     container_name: mensa-glance-api
     hostname: glance-api
     restart: unless-stopped
