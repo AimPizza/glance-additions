@@ -1,57 +1,32 @@
-# TODO: figure out why templating like {{ . }} puts curly brackets arount the strings
 - type: custom-api
   title: Mensa - Heute
   cache: 1h
   url: "http://glance-api:3000/mensa/${MENSA_ID}"
   allow-insecure: true
   template: |
-    {{ with .JSON.Get "error" }}
-      <div class="p-6">
-        <p class="size-h3 color-danger">Fehler: {{ . }}</p>
-      </div>
-    {{ else }}
-      {{ $all := .Array "" }}
-      {{ if eq (len $all) 0 }}
-        <div class="p-6">
-          <p class="size-h3">Für heute gibt es keine Gerichte.</p>
-        </div>
-      {{ else }}
-        {{ $hasNonMeat := false }}
-        {{ range $all }}
-          {{ if and (ne (.String "category") "Fleischgericht") (ne (.String "category") "Fischgericht") }}
-            {{ $hasNonMeat = true }}
-          {{ end }}
-        {{ end }}
+    <ul class="list">
+    {{ range .JSON.Array ""}}
+      {{ if and (ne ( .String "category" ) "Fleischgericht" ) }}
+      <li class="card p-6">
+        <p class="size-h4 color-positive block text-truncate">{{ .String "name" }}</p>
+        <p class="size-small color-muted">{{ .String "category" }}</p>
 
-        {{ if not $hasNonMeat }}
-          <div class="p-6">
-            <p class="size-h3">Heute keine vegetarischen/veganen Gerichte verfügbar.</p>
-          </div>
-        {{ else }}
-          <ul class="list list-gap-8 collapsible-container" data-collapse-after="5">
-          {{ range $all }}
-            {{ if and (ne (.String "category") "Fleischgericht") (ne (.String "category") "Fischgericht") }}
-              <li class="card p-6">
-                <p class="size-h4 color-highlight block text-truncate">{{ .String "name" }}</p>
-                <p class="size-small color-muted">{{ .String "category" }}</p>
-                <ul class="list-horizontal-text mt-4">
-                  <li><strong>Studierende:</strong> {{ .Float "prices.students" | formatNumber }} €</li>
-                </ul>
-                <div class="mt-4">
-                  <p class="size-small color-muted">Allergene / Hinweise:</p>
-                  <div class="flow-inline mt-2">
-                    {{ range .Array "notes" }}
-                    <p>thingy</p>
-                    {{ else }}
-                      <span class="size-small color-muted">—</span>
-                    {{ end }}
-                  </div>
-                </div>
-              </li>
+        <ul class="list-horizontal-text mt-4">
+          <li><strong>Studierende:</strong> {{ .String "prices.students" }} €</li>
+        </ul>
+
+        <div class="mt-4">
+          <p class="size-small color-muted">Allergene / Hinweise:</p>
+          <ul class="list-horizontal-text">
+            {{ range .Array "notes" }}
+              <li>{{ .String "" }}</li>
             {{ end }}
-          {{ end }}
           </ul>
-        {{ end }}
+        </div>
+      </li>
+
       {{ end }}
     {{ end }}
+    </ul>
+
 
