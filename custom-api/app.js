@@ -3,8 +3,6 @@ import express from "express";
 const app = express();
 const PORT = 3000;
 
-const MENSA_URL = "https://openmensa.org/api/v2";
-
 function getCurrentDate() {
     const today = new Date();
     const year = today.getFullYear();
@@ -17,7 +15,8 @@ app.get("/mensa/:id", async (req, res) => {
     const { id } = req.params;
     const date = getCurrentDate();
 
-    const mealUri = `${MENSA_URL}/canteens/${id}/days/${date}/meals`;
+    const mensaUrl = "https://openmensa.org/api/v2";
+    const mealUri = `${mensaUrl}/canteens/${id}/days/${date}/meals`;
 
     const mensaResponse = await fetch(mealUri);
     if (!mensaResponse.ok) {
@@ -31,6 +30,23 @@ app.get("/mensa/:id", async (req, res) => {
         const result = await mensaResponse.json();
         res.send(result);
     }
+});
+
+app.get("/syncthing/folders", async (req, res) => {
+    const baseUrl = process.env.SYNCTHING_BASE_URL;
+    const endpoints = {
+        stats: "/rest/stats/device",
+    };
+    const apiKey = process.env.SYNCTHING_API_KEY;
+
+    const deviceStats = await fetch(`${baseUrl}${endpoints.stats}`, {
+        method: "GET",
+        headers: {
+            "X-API-Key": apiKey,
+        },
+    });
+    const result = await deviceStats.json();
+    res.send(result);
 });
 
 app.listen(PORT, () => {
