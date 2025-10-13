@@ -1,4 +1,5 @@
 import express from "express";
+import dayjs from "dayjs";
 
 const app = express();
 const PORT = 3000;
@@ -9,6 +10,23 @@ function getCurrentDate() {
     const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
     const day = String(today.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+}
+
+function formatDuration(millis) {
+    const SECOND = 1000;
+    const MINUTE = 60 * SECOND;
+    const HOUR = 60 * MINUTE;
+    const DAY = 24 * HOUR;
+
+    if (millis < MINUTE) {
+        return `${Math.trunc(millis / SECOND)}s`;
+    } else if (millis < HOUR) {
+        return `${Math.trunc(millis / MINUTE)}min`;
+    } else if (millis < DAY) {
+        return `${Math.trunc(millis / HOUR)}h`;
+    } else {
+        return `${Math.trunc(millis / DAY)}d`;
+    }
 }
 
 app.get("/mensa/:id", async (req, res) => {
@@ -45,7 +63,16 @@ app.get("/syncthing/folders", async (req, res) => {
             "X-API-Key": apiKey,
         },
     });
-    const result = await deviceStats.json();
+    let result = await deviceStats.json();
+
+    // REMOVEME: manual tampering with the response obj for testing
+    const currentDate = dayjs();
+    Object.keys(result).forEach((key) => {
+        const lastSeen = dayjs(result[key].lastSeen);
+        const dateDiff = currentDate.diff(lastSeen);
+        result[key].sinceLastSeen = formatDuration(dateDiff);
+    });
+    // END REMOVEME
     res.send(result);
 });
 
