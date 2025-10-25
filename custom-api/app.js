@@ -9,7 +9,21 @@ function getCurrentDate() {
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
     const day = String(today.getDate()).padStart(2, "0");
+
     return `${year}-${month}-${day}`;
+}
+
+async function handleResponse(response) {
+    if (response.ok) {
+        try {
+            const data = await response.json();
+            return { ok: true, status: 200, value: data };
+        } catch (e) {
+            return { ok: false, status: 500 };
+        }
+    }
+
+    return { ok: false, status: response.status };
 }
 
 function formatDuration(millis) {
@@ -18,62 +32,93 @@ function formatDuration(millis) {
     const HOUR = 60 * MINUTE;
     const DAY = 24 * HOUR;
 
-    if (millis < MINUTE) {
-        return `${Math.trunc(millis / SECOND)}s`;
-    } else if (millis < HOUR) {
-        return `${Math.trunc(millis / MINUTE)}min`;
-    } else if (millis < DAY) {
-        return `${Math.trunc(millis / HOUR)}h`;
-    } else {
-        return `${Math.trunc(millis / DAY)}d`;
-    }
+    if (millis < MINUTE) return `${Math.trunc(millis / SECOND)}s`;
+    if (millis < HOUR) return `${Math.trunc(millis / MINUTE)}min`;
+    if (millis < DAY) return `${Math.trunc(millis / HOUR)}h`;
+    return `${Math.trunc(millis / DAY)}d`;
+}
+
+function sinceLastSeenFrom(lastSeen, now) {
+    const lastSeenParsed = dayjs(lastSeen);
+    if (lastSeenParsed.isSame("1970-01-01", "day")) return "never";
+    return formatDuration(now.diff(lastSeen));
 }
 
 app.get("/mensa/:id", async (req, res) => {
     const { id } = req.params;
     const date = getCurrentDate();
-
     const mensaUrl = "https://openmensa.org/api/v2";
     const mealUri = `${mensaUrl}/canteens/${id}/days/${date}/meals`;
 
-    const mensaResponse = await fetch(mealUri);
+    const mensaResponse = await handleResponse(await fetch(mealUri));
     if (!mensaResponse.ok) {
+        let mealStatusMessage = "Fetching Mensa failed.";
         if (mensaResponse.status === 404) {
-            mealStatusMessage = "No meals found for today.";
-        } else {
-            mealStatusMessage = "Fetching Mensa failed.";
+            // assume server is reachable
+            const mensaInfo = await handleResponse(
+                await fetch(`${mensaUrl}/canteens/${id}`)
+            );
+            mealStatusMessage = `No meals found for today. Mensa: ${mensaInfo.value?.name}`;
         }
         res.status(500).send({ error: mealStatusMessage });
-    } else {
-        const result = await mensaResponse.json();
-        res.send(result);
+        return;
     }
+
+    res.send(mensaResponse.value);
 });
 
-app.get("/syncthing/folders", async (req, res) => {
-    const baseUrl = process.env.SYNCTHING_BASE_URL;
+app.get("/syncthing/devices", async (req, res) => {
+    const env =
+        typeof process !== "undefined" && process.env ? process.env : {};
+    const baseUrl = env.SYNCTHING_BASE_URL || "http://localhost:8384";
     const endpoints = {
         stats: "/rest/stats/device",
+        devices: "/rest/config/devices",
     };
-    const apiKey = process.env.SYNCTHING_API_KEY;
-
-    const deviceStats = await fetch(`${baseUrl}${endpoints.stats}`, {
-        method: "GET",
-        headers: {
-            "X-API-Key": apiKey,
-        },
-    });
-    let result = await deviceStats.json();
-
-    // REMOVEME: manual tampering with the response obj for testing
+    const apiKey = env.SYNCTHING_API_KEY || "";
     const currentDate = dayjs();
-    Object.keys(result).forEach((key) => {
-        const lastSeen = dayjs(result[key].lastSeen);
-        const dateDiff = currentDate.diff(lastSeen);
-        result[key].sinceLastSeen = formatDuration(dateDiff);
-    });
-    // END REMOVEME
-    res.send(result);
+
+    const [statsResponse, configResponse] = await Promise.all([
+        fetch(`${baseUrl}${endpoints.stats}`, {
+            method: "GET",
+            headers: { "X-API-Key": apiKey },
+        }),
+        fetch(`${baseUrl}${endpoints.devices}`, {
+            method: "GET",
+            headers: { "X-API-Key": apiKey },
+        }),
+    ]);
+    const statsResult = await handleResponse(statsResponse);
+    const devicesResult = await handleResponse(configResponse);
+
+    if (!devicesResult.ok) {
+        res.status(500).send({
+            error: `Fetching Syncthing devices failed ${devicesResult.status})`,
+        });
+        return;
+    }
+
+    const devicesList = devicesResult.value || [];
+    const statsObj = statsResult.ok ? statsResult.value : {};
+
+    const indexById = new Map(devicesList.map((item, i) => [item.deviceID, i]));
+
+    for (const [deviceID, deviceStats] of Object.entries(statsObj || {})) {
+        const idx = indexById.get(deviceID);
+        if (idx !== undefined) {
+            devicesList[idx].sinceLastSeen = sinceLastSeenFrom(
+                deviceStats.lastSeen,
+                currentDate
+            );
+        }
+    }
+
+    res.send(
+        devicesList.map((device) => ({
+            name: device.name,
+            sinceLastSeen: device.sinceLastSeen,
+        }))
+    );
 });
 
 app.listen(PORT, () => {
