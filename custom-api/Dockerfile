@@ -1,5 +1,7 @@
 FROM node:alpine as base
 
+ARG NODE_ENV=production
+
 WORKDIR /app
 
 COPY package.json ./
