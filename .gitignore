@@ -1,3 +1,6 @@
 .env
 node_modules
+dist
+
+# I don't use yarn
 yarn.lock

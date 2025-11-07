@@ -1,8 +1,8 @@
 services:
-  mensa-glance-api:
-    image: ghcr.io/AimPizza/glance-additions:latest
-    container_name: mensa-glance-api
-    hostname: glance-api
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
+    mensa-glance-api:
+        image: ghcr.io/AimPizza/glance-additions:latest
+        container_name: mensa-glance-api
+        hostname: glance-api
+        restart: unless-stopped
+        ports:
+            - "3000:3000"

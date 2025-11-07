@@ -30,3 +30,7 @@ example of how to include a widget:
   widgets:
       $include: additions/mensa.yml # this path is now relative to inside the glance container
 ```
+
+## TODO
+
+-   [Syncthing] allow filtering out `never` devices
