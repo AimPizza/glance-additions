@@ -1,0 +1,14 @@
+- type: custom-api
+  title: Syncthing
+  cache: 5m
+  url: "http://glance-api:3000/syncthing/devices"
+  allow-insecure: true
+  template: |
+    <ul class="list">
+      {{ range .JSON.Array ""}}
+        <ul class="list-horizontal-text">
+          <li class="size-h4 color-highlight">{{ .String "name" }}</li>
+          <li title="since last seen">{{ .String "sinceLastSeen" }}</li>
+        </ul>
+      {{ end }}
+    </ul>

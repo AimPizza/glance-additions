@@ -4,5 +4,9 @@ services:
         container_name: mensa-glance-api
         hostname: glance-api
         restart: unless-stopped
+        environment:
+            SYNCTHING_BASE_URL: http://172.17.0.1:8384 # https://stackoverflow.com/a/65527752
+            SYNCTHING_API_KEY: 1234567890
+
         ports:
             - "3000:3000"
