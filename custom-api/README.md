@@ -1,5 +1,7 @@
 ## contents
 
+### mensa
+
 -   `/mensa/12345` mensa (college cafetaria) endpoint giving you todays meals from [OpenMensa](https://openmensa.org)
 
 ```json
@@ -24,7 +26,11 @@
 ]
 ```
 
+### syncthing
+
 -   `/syncthing/folders` endpoint for a [Syncthing](https://syncthing.net/) instance. Currently returns added devices combined with a natural language duration since this instance last connected to that device.
+
+note: some devices will return "never" as their date in the actual Syncthing API is set to 1970 (the server itself is among those). To filter them out, add the query parameter `filterNever=true`.
 
 ```json
 [

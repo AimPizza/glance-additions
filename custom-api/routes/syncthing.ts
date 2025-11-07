@@ -28,7 +28,6 @@ function formatDuration(millis: number): string {
 function sinceLastSeenFrom(lastSeen: string, now: Dayjs): string {
     const lastSeenParsed = dayjs(lastSeen);
     if (lastSeenParsed.isSame("1970-01-01", "day")) return NEVER;
-    // Fix: diff against parsed date
     return formatDuration(now.diff(lastSeenParsed));
 }
 
@@ -43,7 +42,9 @@ router.get("/syncthing/devices", async (req: Request, res: Response) => {
     const apiKey = env.SYNCTHING_API_KEY || "";
     const currentDate = dayjs();
 
-    const doFilterNeverDevices = Boolean(req.query.filterNever);
+    const doFilterNeverDevices = Boolean(
+        JSON.parse(String(req.query.filterNever ?? "false"))
+    );
 
     const [statsResponse, configResponse] = await Promise.all([
         fetch(`${baseUrl}${endpoints.stats}`, {

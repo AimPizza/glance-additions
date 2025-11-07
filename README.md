@@ -33,4 +33,4 @@ example of how to include a widget:
 
 ## TODO
 
--   [Syncthing] allow filtering out `never` devices
+no plans right now, feel free to suggest ideas
