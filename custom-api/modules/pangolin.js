@@ -3,7 +3,7 @@
  * @see https://api.pangolin.net/v1/docs/#/Public%20Resource/get_org__orgId__resources
  */
 import express from "express";
-import { handleResponse } from "../common/helpers.js";
+import { getSelfhstIconUrl, handleResponse } from "../common/helpers.js";
 
 const router = express.Router();
 
@@ -35,9 +35,15 @@ router.get("/public-http-resources", async (req, res) => {
         return;
     }
 
-    const resourcesUrl = `${baseUrl}/org/${orgId}/resources`;
-    // TODO: authenticate
-    const pangoResponse = await handleResponse(await fetch(resourcesUrl));
+    const resourcesUrl = `${baseUrl}/v1/org/${orgId}/resources`;
+    const pangoResponse = await handleResponse(
+        await fetch(resourcesUrl, {
+            headers: {
+                Authorization: "Bearer " + apiKey,
+                "Content-Type": "application/json",
+            },
+        }),
+    );
 
     if (!pangoResponse.ok) {
         res.status(500).send({
@@ -47,10 +53,15 @@ router.get("/public-http-resources", async (req, res) => {
     }
 
     let resources = [];
-    for (const resource in pangoResponse.value.data.resources) {
+    for (const resource of pangoResponse.value.data.resources) {
         if (!resource.http) continue;
 
-        console.log("hey");
+        const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);
+        resources.push({
+            name: resource.name,
+            url: `https://${resource.fullDomain}`,
+            ...(iconUrl !== null ? { iconUrl } : {}),
+        });
     }
 
     res.send(resources);
