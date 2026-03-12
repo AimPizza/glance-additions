@@ -7,6 +7,37 @@ import { getSelfhstIconUrl, handleResponse } from "../common/helpers.js";
 
 const router = express.Router();
 
+/**
+ * Calculate health status based on target health statuses
+ * @param {Array} targets - Array of target objects with healthStatus property
+ * @returns {string} - One of: healthy, degraded, offline, unknown, no_targets
+ */
+function calculateHealthStatus(targets) {
+    if (!targets || targets.length === 0) {
+        return "no_targets";
+    }
+
+    const healthStatuses = targets.map((target) => target.healthStatus);
+    const uniqueStatuses = [...new Set(healthStatuses)];
+
+    if (uniqueStatuses.length === 1 && uniqueStatuses[0] === "unknown") {
+        return "unknown";
+    }
+
+    const healthyCount = healthStatuses.filter(
+        (status) => status === "healthy",
+    ).length;
+    const totalCount = healthStatuses.length;
+
+    if (healthyCount === totalCount) {
+        return "healthy";
+    } else if (healthyCount === 0) {
+        return "offline";
+    } else {
+        return "degraded";
+    }
+}
+
 router.get("/public-http-resources", async (req, res) => {
     const env =
         typeof process !== "undefined" && process.env ? process.env : {};
@@ -57,9 +88,12 @@ router.get("/public-http-resources", async (req, res) => {
         if (!resource.http) continue;
 
         const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);
+        const healthStatus = calculateHealthStatus(resource.targets);
+
         resources.push({
             name: resource.name,
             url: `https://${resource.fullDomain}`,
+            healthStatus: healthStatus,
             ...(iconUrl !== null ? { iconUrl } : {}),
         });
     }
