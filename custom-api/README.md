@@ -1,6 +1,6 @@
 ## contents
 
--   `/mensa/12345` mensa (college cafetaria) endpoint giving you todays meals from [OpenMensa](https://openmensa.org)
+- `/mensa/12345` mensa (college cafetaria) endpoint giving you todays meals from [OpenMensa](https://openmensa.org)
 
 ```json
 [
@@ -24,7 +24,7 @@
 ]
 ```
 
--   `/syncthing/folders` endpoint for a [Syncthing](https://syncthing.net/) instance. Currently returns added devices combined with a natural language duration since this instance last connected to that device.
+- `/syncthing/folders` endpoint for a [Syncthing](https://syncthing.net/) instance. Currently returns added devices combined with a natural language duration since this instance last connected to that device.
 
 ```json
 [
@@ -43,11 +43,30 @@
 ]
 ```
 
+- `/pangolin/public-http-resources` list your public [Pangolin](https://pangolin.net/) resources. Acts as an automated dashboard for all your services
+
+```json
+[
+    {
+        "name": "forgejo",
+        "url": "https://git.example.com",
+        "healthStatus": "unknown",
+        "iconUrl": "https://cdn.jsdelivr.net/gh/selfhst/icons/png/forgejo.png"
+    },
+    {
+        "name": "uptime-kuma",
+        "url": "https://status.example.com",
+        "healthStatus": "healthy",
+        "iconUrl": "https://cdn.jsdelivr.net/gh/selfhst/icons/png/uptime-kuma.png"
+    }
+]
+```
+
 ## valuable resources used
 
--   https://sabe.io/tutorials/how-to-deploy-express-app-docker
--   https://expressjs.com/en/5x/api.html
--   https://docs.openmensa.org/api/v2/canteens/meals/
+- https://sabe.io/tutorials/how-to-deploy-express-app-docker
+- https://expressjs.com/en/5x/api.html
+- https://docs.openmensa.org/api/v2/canteens/meals/
 
 ## developer notes
 
