@@ -1,0 +1,34 @@
+- type: custom-api
+  title: Pangolin Resources
+  cache: 3m
+  url: "http://glance-api:3000/pangolin/public-http-resources"
+  # strongly based on https://raw.githubusercontent.com/glanceapp/glance/refs/heads/main/internal/glance/templates/monitor.html
+  template: |
+    <ul class="dynamic-columns list-gap-20 list-with-separator">
+        {{ range .JSON.Array "" }}
+        <div class="monitor-site flex items-center gap-15">
+            {{ if .String "iconUrl" }}
+            <img class="monitor-site-icon" src='{{ .String "iconUrl"}}'>
+            {{ end }}
+            <div class="grow min-width-0">
+                <a class="size-h3 color-highlight text-truncate block" href='{{ .String "url"}}' target="_blank" rel="noreferrer">{{ .String "name" }}</a>
+                <ul class="list-horizontal-text">
+                    {{ $healthStatus := .String "healthStatus" }}
+                    {{ if eq $healthStatus "healthy" }}
+                    <li class="color-positive">Healthy</li>
+                    {{ else if eq $healthStatus "degraded" }}
+                    <li class="color-warning">Degraded</li>
+                    {{ else if eq $healthStatus "offline" }}
+                    <li class="color-negative">Offline</li>
+                    {{ else if eq $healthStatus "unknown" }}
+                    <li>Unknown</li>
+                    {{ else if eq $healthStatus "no_targets" }}
+                    <li>No Targets</li>
+                    {{ else }}
+                    <li>{{ $healthStatus }}</li>
+                    {{ end }}
+                </ul>
+            </div>
+        </div>
+        {{ end }}
+    </ul>

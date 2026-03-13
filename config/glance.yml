@@ -1,0 +1,10 @@
+# example glance root config
+# useful when mounting this directory to a local instance of glance for testing
+pages:
+  - name: Home
+    columns:
+      - size: full
+        widgets:
+          # $include: mensa.yml
+          $include: pangolin.yml
+          # $include: syncthing.yml

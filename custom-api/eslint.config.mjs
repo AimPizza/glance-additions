@@ -7,16 +7,13 @@ import { defineConfig, globalIgnores } from "eslint/config";
 export default defineConfig([
     globalIgnores(["dist/"]),
     {
-        files: ["**/*.{ts,tsx}"],
-        languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-                project: "./tsconfig.json",
-                sourceType: "module",
-            },
-            globals: globals.node,
-        },
-        plugins: { "@typescript-eslint": tsPlugin },
+        files: ["**/*.{js,mjs,cjs}"],
+        plugins: { js },
+        extends: ["js/recommended"],
+        languageOptions: { globals: globals.node },
+    },
+    {
+        files: ["**/*.{js,mjs,cjs}"],
         rules: {
             "@typescript-eslint/no-unused-vars": [
                 "error",
