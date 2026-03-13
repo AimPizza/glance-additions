@@ -1,10 +1,11 @@
 import express from "express";
 import dayjs from "dayjs";
 import { handleResponse, formatDuration } from "../common/helpers.js";
+import { SyncthingDevice, SyncthingDeviceStats } from "../common/types.js";
 
 const router = express.Router();
 
-function sinceLastSeenFrom(lastSeen, now) {
+function sinceLastSeenFrom(lastSeen: string, now: dayjs.Dayjs) {
     const lastSeenParsed = dayjs(lastSeen);
     if (lastSeenParsed.isSame("1970-01-01", "day")) return "never";
     return formatDuration(now.diff(lastSeen));
@@ -41,8 +42,10 @@ router.get("/devices", async (req, res) => {
         return;
     }
 
-    const devicesList = devicesResult.value || [];
-    const statsObj = statsResult.ok ? statsResult.value : {};
+    const devicesList: SyncthingDevice[] = devicesResult.value || [];
+    const statsObj: SyncthingDeviceStats = statsResult.ok
+        ? statsResult.value
+        : {};
 
     const indexById = new Map(devicesList.map((item, i) => [item.deviceID, i]));
 

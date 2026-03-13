@@ -2,7 +2,7 @@
  *
  * @param {string} s - some string to be converted
  */
-function convertStringToIconSlug(s) {
+function convertStringToIconSlug(s: string) {
     return s.toLowerCase().replace(/[\W_]+/g, "-");
 }
 
@@ -14,7 +14,7 @@ const selfhstIconUrlCache = new Map();
  * @param {string|undefined} fallback - another name to try if nothing is found for `name`. Useful if the primary name field of service x can't always be set to icon slug.
  * @returns {string|null} URL to icon
  */
-async function getSelfhstIconUrl(name, fallback) {
+async function getSelfhstIconUrl(name: string, fallback?: string) {
     const cacheKey = `${name ?? ""}|${fallback ?? ""}`;
     const cachedIconUrl = selfhstIconUrlCache.get(cacheKey);
     if (cachedIconUrl) {
@@ -23,15 +23,17 @@ async function getSelfhstIconUrl(name, fallback) {
 
     const iconUrlPromise = (async () => {
         let url = `https://cdn.jsdelivr.net/gh/selfhst/icons/png/${convertStringToIconSlug(name)}.png`;
-        const res = await fetch(url, { method: "HEAD" });
+        let res = await fetch(url, { method: "HEAD" });
         if (res.ok) {
             return url;
         }
 
-        url = `https://cdn.jsdelivr.net/gh/selfhst/icons/png/${convertStringToIconSlug(fallback)}.png`;
-        const anotherRes = await fetch(url, { method: "HEAD" });
+        if (fallback) {
+            url = `https://cdn.jsdelivr.net/gh/selfhst/icons/png/${convertStringToIconSlug(fallback)}.png`;
+            res = await fetch(url, { method: "HEAD" });
+        }
 
-        return anotherRes.ok ? url : null;
+        return res.ok ? url : null;
     })();
 
     selfhstIconUrlCache.set(cacheKey, iconUrlPromise);
@@ -53,7 +55,7 @@ function getCurrentDate() {
     return `${year}-${month}-${day}`;
 }
 
-async function handleResponse(response) {
+async function handleResponse(response: Response) {
     if (response.ok) {
         try {
             const data = await response.json();
@@ -66,7 +68,7 @@ async function handleResponse(response) {
     return { ok: false, status: response.status };
 }
 
-function formatDuration(millis) {
+function formatDuration(millis: number) {
     const SECOND = 1000;
     const MINUTE = 60 * SECOND;
     const HOUR = 60 * MINUTE;

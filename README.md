@@ -90,8 +90,6 @@ exposes endpoints to be used in the dashboard. Reason: I didn't find a way to dy
 
 ## usage
 
-Take a look at `.env.example` files as a reference for environment variables needed by glance or custom-api (some are set in the api env, some in glance)
-
 Use files in `config/` as inspiration on how to integrate these endpoints to your dashboard.
 
 The [docker-compose.yml](./custom-api/docker-compose.yml) should suffice as a minimal example.

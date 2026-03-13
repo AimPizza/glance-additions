@@ -4,6 +4,11 @@
  */
 import express from "express";
 import { getSelfhstIconUrl, handleResponse } from "../common/helpers.js";
+import {
+    PangolinResource,
+    PangolinResponseObj,
+    PangolinTarget,
+} from "../common/types.js";
 
 const router = express.Router();
 
@@ -12,7 +17,7 @@ const router = express.Router();
  * @param {Array} targets - Array of target objects with healthStatus property
  * @returns {string} - One of: healthy, degraded, offline, unknown, no_targets
  */
-function calculateHealthStatus(targets) {
+function calculateHealthStatus(targets: PangolinTarget[]) {
     if (!targets || targets.length === 0) {
         return "no_targets";
     }
@@ -83,8 +88,9 @@ router.get("/public-http-resources", async (req, res) => {
         return;
     }
 
-    let resources = [];
-    for (const resource of pangoResponse.value.data.resources) {
+    let resources: PangolinResponseObj[] = [];
+    for (const resource of pangoResponse.value.data
+        .resources as PangolinResource[]) {
         if (!resource.http) continue;
 
         const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);

@@ -5,6 +5,6 @@ pages:
     columns:
       - size: full
         widgets:
-          # $include: mensa.yml
+          $include: mensa.yml
           $include: pangolin.yml
-          # $include: syncthing.yml
+          $include: syncthing.yml

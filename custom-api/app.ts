@@ -1,12 +1,14 @@
 import express from "express";
-import mensaRouter from "./routes/openmensa.js";
-import syncthingRouter from "./routes/syncthing.js";
+import mensaRoutes from "./modules/mensa.js";
+import syncthingRoutes from "./modules/syncthing.js";
+import pangolinRoutes from "./modules/pangolin.js";
 
 const app = express();
 const PORT = 3000;
 
-app.use(mensaRouter);
-app.use(syncthingRouter);
+app.use("/mensa", mensaRoutes);
+app.use("/syncthing", syncthingRoutes);
+app.use("/pangolin", pangolinRoutes);
 
 app.listen(PORT, () => {
     console.log("Server running on port", PORT);
