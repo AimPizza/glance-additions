@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import { Resp } from "./types.js";
+
 /** Perform transformations on an arbitrary string to try and convert it to an icon slug.
  *
  * @param {string} s - some string to be converted
@@ -7,6 +10,7 @@ function convertStringToIconSlug(s: string) {
 }
 
 const selfhstIconUrlCache = new Map();
+const MENSA_DATE_FORMAT = "YYYY-MM-DD";
 
 /** Try to obtain a URL to an icon from selfh.st/icons
  *
@@ -46,16 +50,12 @@ async function getSelfhstIconUrl(name: string, fallback?: string) {
     }
 }
 
-function getCurrentDate() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-    const day = String(today.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
+function getDateOfDelta(days: number) {
+    const today = dayjs().add(days, "day");
+    return today.format(MENSA_DATE_FORMAT);
 }
 
-async function handleResponse(response: Response) {
+async function handleResponse(response: Response): Promise<Resp> {
     if (response.ok) {
         try {
             const data = await response.json();
@@ -80,4 +80,4 @@ function formatDuration(millis: number) {
     return `${Math.trunc(millis / DAY)}d`;
 }
 
-export { getCurrentDate, handleResponse, formatDuration, getSelfhstIconUrl };
+export { getDateOfDelta, handleResponse, formatDuration, getSelfhstIconUrl };
