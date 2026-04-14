@@ -10,6 +10,8 @@ exposes endpoints to be used in the dashboard. Reason: I didn't find a way to dy
 
 `/mensa/12345` mensa (college cafetaria) endpoint giving you todays meals from [OpenMensa](https://openmensa.org)
 
+- this is the default for another route `/mensa/12345/offset/0` where the offset value is the difference in days from today. For tomorrow, you'd use `1`.
+
 <details>
 <summary>example response</summary>
 
