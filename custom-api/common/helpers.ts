@@ -80,4 +80,8 @@ function formatDuration(millis: number) {
     return `${Math.trunc(millis / DAY)}d`;
 }
 
-export { getDateOfDelta, handleResponse, formatDuration, getSelfhstIconUrl };
+function makeError(message: string) {
+    return { error: message }
+}
+
+export { makeError, getDateOfDelta, handleResponse, formatDuration, getSelfhstIconUrl };

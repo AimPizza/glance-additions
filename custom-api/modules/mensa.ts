@@ -1,14 +1,14 @@
 import express from "express";
-import { getDateOfDelta, handleResponse } from "../common/helpers.js";
-import { Resp } from "../common/types.js";
+import { getDateOfDelta, handleResponse, makeError } from "../common/helpers.js";
+import { HandledResponse } from "../common/types.js";
 
 const router = express.Router();
 
-async function getMealsForDay(canteenId: number, date: string): Promise<Resp> {
+async function getMealsForDay(canteenId: number, date: string): Promise<HandledResponse> {
     const mensaUrl = "https://openmensa.org/api/v2";
     const mealUri = `${mensaUrl}/canteens/${canteenId}/days/${date}/meals`;
 
-    let mensaResponse: Resp = await handleResponse(await fetch(mealUri));
+    let mensaResponse: HandledResponse = await handleResponse(await fetch(mealUri));
     if (!mensaResponse.ok) {
         let mealStatusMessage = "Fetching Mensa failed.";
         if (mensaResponse.status === 404) {
@@ -37,7 +37,7 @@ router.get("/:id/offset/:offset", async (req, res) => {
     const { id, offset } = req.params;
     const parsedOffset = Number(offset);
     if (!Number.isInteger(parsedOffset)) {
-        res.status(400).send(`Invalid offset: ${offset}`);
+        res.status(400).send(makeError(`Invalid offset: ${offset}`));
         return;
     }
 

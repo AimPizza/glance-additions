@@ -87,9 +87,3 @@ export interface PangolinResponseObj {
     healthStatus: string;
     iconUrl?: string;
 }
-
-export interface Resp {
-    ok: boolean;
-    status: number;
-    value?: any;
-}

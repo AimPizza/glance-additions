@@ -1,6 +1,6 @@
 import express from "express";
 import dayjs from "dayjs";
-import { handleResponse, formatDuration } from "../common/helpers.js";
+import { handleResponse, formatDuration, makeError } from "../common/helpers.js";
 import { SyncthingDevice, SyncthingDeviceStats } from "../common/types.js";
 
 const router = express.Router();
@@ -36,9 +36,9 @@ router.get("/devices", async (req, res) => {
     const devicesResult = await handleResponse(configResponse);
 
     if (!devicesResult.ok) {
-        res.status(500).send({
-            error: `Fetching Syncthing devices failed (${devicesResult.status})`,
-        });
+        res.status(500).send(
+            makeError(`Fetching Syncthing devices failed (${devicesResult.status})`)
+        );
         return;
     }
 
