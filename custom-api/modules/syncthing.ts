@@ -1,6 +1,6 @@
 import express from "express";
 import dayjs from "dayjs";
-import { handleResponse, formatDuration } from "../common/helpers.js";
+import { handleResponse, formatDuration, makeError } from "../common/helpers.js";
 import { SyncthingDevice, SyncthingDeviceStats } from "../common/types.js";
 
 const router = express.Router();
@@ -32,24 +32,24 @@ router.get("/devices", async (req, res) => {
             headers: { "X-API-Key": apiKey },
         }),
     ]);
-    const statsResult = await handleResponse(statsResponse);
-    const devicesResult = await handleResponse(configResponse);
+    const statsResult = await handleResponse<SyncthingDeviceStats>(statsResponse);
+    const devicesResult = await handleResponse<SyncthingDevice[]>(configResponse);
 
     if (!devicesResult.ok) {
-        res.status(500).send({
-            error: `Fetching Syncthing devices failed (${devicesResult.status})`,
-        });
+        res.status(500).send(
+            makeError(`Fetching Syncthing devices failed (${devicesResult.status})`)
+        );
         return;
     }
 
     const devicesList: SyncthingDevice[] = devicesResult.value || [];
     const statsObj: SyncthingDeviceStats = statsResult.ok
-        ? statsResult.value
-        : {};
+        ? statsResult.value!
+        : { lastSeen: "never" };
 
     const indexById = new Map(devicesList.map((item, i) => [item.deviceID, i]));
 
-    for (const [deviceID, deviceStats] of Object.entries(statsObj || {})) {
+    for (const [deviceID, deviceStats] of Object.entries(statsObj)) {
         const idx = indexById.get(deviceID);
         if (idx !== undefined) {
             devicesList[idx].sinceLastSeen = sinceLastSeenFrom(

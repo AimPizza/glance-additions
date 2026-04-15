@@ -3,9 +3,9 @@
  * @see https://api.pangolin.net/v1/docs/#/Public%20Resource/get_org__orgId__resources
  */
 import express from "express";
-import { getSelfhstIconUrl, handleResponse } from "../common/helpers.js";
+import { makeError, getSelfhstIconUrl, handleResponse } from "../common/helpers.js";
 import {
-    PangolinResource,
+    PangolinResources,
     PangolinResponseObj,
     PangolinTarget,
 } from "../common/types.js";
@@ -49,30 +49,24 @@ router.get("/public-http-resources", async (req, res) => {
 
     const baseUrl = env.PANGOLIN_BASE_URL;
     if (!baseUrl) {
-        res.status(500).send({
-            error: "Could not obtain Pangolin API baseUrl",
-        });
+        res.status(500).send(makeError("Could not obtain Pangolin API baseUrl"));
         return;
     }
 
     const orgId = env.PANGOLIN_ORG_ID;
     if (!orgId) {
-        res.status(500).send({
-            error: "Could not obtain Pangolin OrgId",
-        });
+        res.status(500).send(makeError("Could not obtain Pangolin OrgId"));
         return;
     }
 
     const apiKey = env.PANGOLIN_API_KEY;
     if (!apiKey) {
-        res.status(500).send({
-            error: "Could not obtain Pangolin API key",
-        });
+        res.status(500).send(makeError("Could not obtain Pangolin API key"));
         return;
     }
 
     const resourcesUrl = `${baseUrl}/v1/org/${orgId}/resources`;
-    const pangoResponse = await handleResponse(
+    const pangoResponse = await handleResponse<PangolinResources>(
         await fetch(resourcesUrl, {
             headers: {
                 Authorization: "Bearer " + apiKey,
@@ -82,15 +76,19 @@ router.get("/public-http-resources", async (req, res) => {
     );
 
     if (!pangoResponse.ok) {
-        res.status(500).send({
-            error: `Fetching Pangolin Resources failed (${pangoResponse.status})`,
-        });
+        res.status(500).send(makeError(
+            `Fetching Pangolin Resources failed (${pangoResponse.status})`
+        ));
         return;
     }
 
     let resources: PangolinResponseObj[] = [];
-    for (const resource of pangoResponse.value.data
-        .resources as PangolinResource[]) {
+    const resourcesData = pangoResponse.value?.data;
+    if (!resourcesData) {
+        res.status(500).send(makeError("Invalid response from Pangolin"));
+        return;
+    }
+    for (const resource of resourcesData.resources) {
         if (!resource.http) continue;
 
         const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);

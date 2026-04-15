@@ -1,32 +1,65 @@
-- type: custom-api
-  title: Mensa - Heute
-  cache: 1h
-  url: "http://glance-api:3000/mensa/${MENSA_ID}"
-  allow-insecure: true
-  template: |
-    <ul class="list">
-    {{ range .JSON.Array ""}}
-      {{ if and (ne ( .String "category" ) "Fleischgericht" ) }}
-      <li class="card p-6">
-        <p class="size-h4 color-positive block text-truncate">{{ .String "name" }}</p>
-        <p class="size-small color-muted">{{ .String "category" }}</p>
+- type: group
+  widgets:
 
-        <ul class="list-horizontal-text mt-4">
-          <li><strong>Studierende:</strong> {{ .String "prices.students" }} €</li>
-        </ul>
+  - type: custom-api
+    title: Mensa - Heute
+    cache: 1h
+    url: "http://glance-api:3000/mensa/${MENSA_ID}"
+    allow-insecure: true
+    template: |
+      <ul class="list">
+      {{ range .JSON.Array ""}}
+        {{ if and (ne ( .String "category" ) "Fleischgericht" ) }}
+        <li class="card p-6">
+          <p class="size-h4 color-positive block text-truncate">{{ .String "name" }}</p>
+          <p class="size-small color-muted">{{ .String "category" }}</p>
 
-        <div class="mt-4">
-          <p class="size-small color-muted">Allergene / Hinweise:</p>
-          <ul class="list-horizontal-text">
-            {{ range .Array "notes" }}
-              <li>{{ .String "" }}</li>
-            {{ end }}
+          <ul class="list-horizontal-text mt-4">
+            <li><strong>Studierende:</strong> {{ .String "prices.students" }} €</li>
           </ul>
-        </div>
-      </li>
 
+          <div class="mt-4">
+            <p class="size-small color-muted">Allergene / Hinweise:</p>
+            <ul class="list-horizontal-text">
+              {{ range .Array "notes" }}
+                <li>{{ .String "" }}</li>
+              {{ end }}
+            </ul>
+          </div>
+        </li>
+
+        {{ end }}
       {{ end }}
-    {{ end }}
-    </ul>
+      </ul>
 
+  - type: custom-api
+    title: Mensa - Morgen
+    cache: 1h
+    url: "http://glance-api:3000/mensa/${MENSA_ID}/offset/1"
+    allow-insecure: true
+    template: |
+      <ul class="list">
+      {{ range .JSON.Array ""}}
+        {{ if and (ne ( .String "category" ) "Fleischgericht" ) }}
+        <li class="card p-6">
+          <p class="size-h4 color-positive block text-truncate">{{ .String "name" }}</p>
+          <p class="size-small color-muted">{{ .String "category" }}</p>
+
+          <ul class="list-horizontal-text mt-4">
+            <li><strong>Studierende:</strong> {{ .String "prices.students" }} €</li>
+          </ul>
+
+          <div class="mt-4">
+            <p class="size-small color-muted">Allergene / Hinweise:</p>
+            <ul class="list-horizontal-text">
+              {{ range .Array "notes" }}
+                <li>{{ .String "" }}</li>
+              {{ end }}
+            </ul>
+          </div>
+        </li>
+
+        {{ end }}
+      {{ end }}
+      </ul>
 
