@@ -5,7 +5,7 @@
 import express from "express";
 import { makeError, getSelfhstIconUrl, handleResponse } from "../common/helpers.js";
 import {
-    PangolinResource,
+    PangolinResources,
     PangolinResponseObj,
     PangolinTarget,
 } from "../common/types.js";
@@ -66,7 +66,7 @@ router.get("/public-http-resources", async (req, res) => {
     }
 
     const resourcesUrl = `${baseUrl}/v1/org/${orgId}/resources`;
-    const pangoResponse = await handleResponse(
+    const pangoResponse = await handleResponse<PangolinResources>(
         await fetch(resourcesUrl, {
             headers: {
                 Authorization: "Bearer " + apiKey,
@@ -83,8 +83,12 @@ router.get("/public-http-resources", async (req, res) => {
     }
 
     let resources: PangolinResponseObj[] = [];
-    for (const resource of pangoResponse.value.data
-        .resources as PangolinResource[]) {
+    const resourcesData = pangoResponse.value?.data;
+    if (!resourcesData) {
+        res.status(500).send(makeError("Invalid response from Pangolin"));
+        return;
+    }
+    for (const resource of resourcesData.resources) {
         if (!resource.http) continue;
 
         const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);

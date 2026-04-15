@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { Resp } from "./types.js";
+import { HandledResponse } from "./types.js";
 
 /** Perform transformations on an arbitrary string to try and convert it to an icon slug.
  *
@@ -55,10 +55,10 @@ function getDateOfDelta(days: number) {
     return today.format(MENSA_DATE_FORMAT);
 }
 
-async function handleResponse(response: Response): Promise<Resp> {
+async function handleResponse<T>(response: Response): Promise<HandledResponse<T>> {
     if (response.ok) {
         try {
-            const data = await response.json();
+            const data = await response.json() as T;
             return { ok: true, status: 200, value: data };
         } catch (e) {
             return { ok: false, status: 500 };

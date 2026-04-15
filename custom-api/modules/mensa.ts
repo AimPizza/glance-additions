@@ -1,6 +1,6 @@
 import express from "express";
 import { getDateOfDelta, handleResponse, makeError } from "../common/helpers.js";
-import { HandledResponse } from "../common/types.js";
+import { HandledResponse, MensaCanteen } from "../common/types.js";
 
 const router = express.Router();
 
@@ -12,11 +12,10 @@ async function getMealsForDay(canteenId: number, date: string): Promise<HandledR
     if (!mensaResponse.ok) {
         let mealStatusMessage = "Fetching Mensa failed.";
         if (mensaResponse.status === 404) {
-            // assume server is reachable
-            const mensaInfo = await handleResponse(
+            const mensaInfo = await handleResponse<MensaCanteen>(
                 await fetch(`${mensaUrl}/canteens/${canteenId}`),
             );
-            mealStatusMessage = `No meals found for today. Mensa: ${mensaInfo.value?.name}`;
+            mealStatusMessage = mensaInfo.ok ? `No meals found for ${date}. Mensa: ${mensaInfo.value?.name}` : `Couldn't fetch Mensa ${canteenId} (status: ${mensaInfo.status})`;
         }
         mensaResponse.value = mealStatusMessage;
     }

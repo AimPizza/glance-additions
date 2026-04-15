@@ -32,8 +32,8 @@ router.get("/devices", async (req, res) => {
             headers: { "X-API-Key": apiKey },
         }),
     ]);
-    const statsResult = await handleResponse(statsResponse);
-    const devicesResult = await handleResponse(configResponse);
+    const statsResult = await handleResponse<SyncthingDeviceStats>(statsResponse);
+    const devicesResult = await handleResponse<SyncthingDevice[]>(configResponse);
 
     if (!devicesResult.ok) {
         res.status(500).send(
@@ -44,12 +44,12 @@ router.get("/devices", async (req, res) => {
 
     const devicesList: SyncthingDevice[] = devicesResult.value || [];
     const statsObj: SyncthingDeviceStats = statsResult.ok
-        ? statsResult.value
-        : {};
+        ? statsResult.value!
+        : { lastSeen: "never" };
 
     const indexById = new Map(devicesList.map((item, i) => [item.deviceID, i]));
 
-    for (const [deviceID, deviceStats] of Object.entries(statsObj || {})) {
+    for (const [deviceID, deviceStats] of Object.entries(statsObj)) {
         const idx = indexById.get(deviceID);
         if (idx !== undefined) {
             devicesList[idx].sinceLastSeen = sinceLastSeenFrom(
