@@ -16,9 +16,12 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+RUN apk add --no-cache tini
+
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "dist/app.js"]
