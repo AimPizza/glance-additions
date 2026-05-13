@@ -8,9 +8,11 @@ exposes endpoints to be used in the dashboard. Reason: I didn't find a way to dy
 
 ### endpoints
 
-`/mensa/12345` mensa (college cafetaria) endpoint giving you todays meals from [OpenMensa](https://openmensa.org)
+`/mensa/12345` mensa (college cafeteria) endpoint giving you todays meals from [OpenMensa](https://openmensa.org)
 
 - this is the default for another route `/mensa/12345/offset/0` where the offset value is the difference in days from today. For tomorrow, you'd use `1`.
+
+![Mensa example](./docs/mensa.png)
 
 <details>
 <summary>example response</summary>
@@ -42,6 +44,8 @@ exposes endpoints to be used in the dashboard. Reason: I didn't find a way to dy
 
 `/syncthing/folders` endpoint for a [Syncthing](https://syncthing.net/) instance. Currently returns added devices combined with a natural language duration since this instance last connected to that device.
 
+![Syncthing example](./docs/syncthing.png)
+
 <details>
 <summary>example response</summary>
 
@@ -66,6 +70,8 @@ exposes endpoints to be used in the dashboard. Reason: I didn't find a way to dy
 <br>
 
 `/pangolin/public-http-resources` list your public [Pangolin](https://pangolin.net/) resources. Acts as an automated dashboard for all your services
+
+![Pangolin example](./docs/pangolin.png)
 
 <details>
 <summary>example response</summary>
