@@ -71,8 +71,8 @@ export interface PangolinResources {
         resources: PangolinResource[];
         pagination: {
             total: number;
-            limit: number;
-            offset: number;
+            pageSize: number;
+            page: number;
         };
     };
     success: boolean;

@@ -5,6 +5,7 @@
 import express from "express";
 import { makeError, getSelfhstIconUrl, handleResponse } from "../common/helpers.js";
 import {
+    PangolinResource,
     PangolinResources,
     PangolinResponseObj,
     PangolinTarget,
@@ -17,7 +18,7 @@ const router = express.Router();
  * @param {Array} targets - Array of target objects with healthStatus property
  * @returns {string} - One of: healthy, degraded, offline, unknown, no_targets
  */
-function calculateHealthStatus(targets: PangolinTarget[]) {
+function calculateHealthStatus(targets: PangolinTarget[]): string {
     if (!targets || targets.length === 0) {
         return "no_targets";
     }
@@ -43,6 +44,44 @@ function calculateHealthStatus(targets: PangolinTarget[]) {
     }
 }
 
+async function getResources(baseUrl: string, orgId: string, key: string): Promise<PangolinResource[]> {
+    const fetchPage = (page: number) => {
+        const url = `${baseUrl}/v1/org/${orgId}/resources?page=${page}`;
+        return fetch(url, {
+            headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }
+        }).then(handleResponse<PangolinResources>);
+    };
+
+    const firstResponse = await fetchPage(1);
+    if (!firstResponse.ok || !firstResponse.value) {
+        throw new Error(`Failed to fetch initial page (${firstResponse.status})`);
+    }
+
+    const { total, pageSize } = firstResponse.value.data.pagination;
+    const resources: PangolinResource[] = [...firstResponse.value.data.resources];
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    if (totalPages > 1) {
+        const pagePromises = [];
+        for (let page = 2; page <= totalPages; page++) {
+            pagePromises.push(fetchPage(page));
+        }
+
+        const results = await Promise.all(pagePromises);
+
+        for (const res of results) {
+            if (res.ok && res.value?.data.resources) {
+                resources.push(...res.value.data.resources);
+            } else {
+                throw new Error("One of the parallel page requests failed.");
+            }
+        }
+    }
+
+    return resources;
+}
+
 router.get("/public-http-resources", async (req, res) => {
     const env =
         typeof process !== "undefined" && process.env ? process.env : {};
@@ -65,44 +104,29 @@ router.get("/public-http-resources", async (req, res) => {
         return;
     }
 
-    const resourcesUrl = `${baseUrl}/v1/org/${orgId}/resources`;
-    const pangoResponse = await handleResponse<PangolinResources>(
-        await fetch(resourcesUrl, {
-            headers: {
-                Authorization: "Bearer " + apiKey,
-                "Content-Type": "application/json",
-            },
-        }),
-    );
 
-    if (!pangoResponse.ok) {
-        res.status(500).send(makeError(
-            `Fetching Pangolin Resources failed (${pangoResponse.status})`
-        ));
-        return;
+    try {
+        const resources: PangolinResource[] = await getResources(baseUrl, orgId, apiKey);
+        let resp: PangolinResponseObj[] = [];
+
+        for (const resource of resources) {
+            if (!resource.http) continue;
+
+            const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);
+            const healthStatus = calculateHealthStatus(resource.targets);
+
+            resp.push({
+                name: resource.name,
+                url: `https://${resource.fullDomain}`,
+                healthStatus: healthStatus,
+                ...(iconUrl !== null ? { iconUrl } : {}),
+            });
+        }
+
+        res.send(resp);
+    } catch (error) {
+        res.status(500).send(makeError("" + error))
     }
-
-    let resources: PangolinResponseObj[] = [];
-    const resourcesData = pangoResponse.value?.data;
-    if (!resourcesData) {
-        res.status(500).send(makeError("Invalid response from Pangolin"));
-        return;
-    }
-    for (const resource of resourcesData.resources) {
-        if (!resource.http) continue;
-
-        const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);
-        const healthStatus = calculateHealthStatus(resource.targets);
-
-        resources.push({
-            name: resource.name,
-            url: `https://${resource.fullDomain}`,
-            healthStatus: healthStatus,
-            ...(iconUrl !== null ? { iconUrl } : {}),
-        });
-    }
-
-    res.send(resources);
 });
 
 export default router;

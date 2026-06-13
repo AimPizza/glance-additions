@@ -1,5 +1,6 @@
 - type: custom-api
   title: Pangolin Resources
+  timeout: 8s
   cache: 3m
   url: "http://glance-api:3000/pangolin/public-http-resources"
   # strongly based on https://raw.githubusercontent.com/glanceapp/glance/refs/heads/main/internal/glance/templates/monitor.html
