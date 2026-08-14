@@ -110,7 +110,7 @@ router.get("/public-http-resources", async (req, res) => {
         let resp: PangolinResponseObj[] = [];
 
         for (const resource of resources) {
-            if (!resource.http) continue;
+            if (resource.mode !== "http") continue;
 
             const iconUrl = await getSelfhstIconUrl(resource.niceId, resource.name);
             const healthStatus = calculateHealthStatus(resource.targets);

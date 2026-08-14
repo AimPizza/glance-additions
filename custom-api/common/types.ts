@@ -57,8 +57,7 @@ export interface PangolinResource {
     sso: boolean;
     pincodeId: any;
     whitelist: boolean;
-    http: boolean;
-    protocol: string;
+    mode: string;
     proxyPort: any;
     enabled: boolean;
     domainId: string;
